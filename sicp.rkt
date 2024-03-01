@@ -12,10 +12,10 @@
 ;16
 
 ;Exercise 1.2
-(/
- (+ 5 4
-    (- 2 (- 3 (+ 6 (/ 4 5)))))
- (* 3 (- 6 2) (- 2 7)))
+;(/
+; (+ 5 4
+;    (- 2 (- 3 (+ 6 (/ 4 5)))))
+; (* 3 (- 6 2) (- 2 7)))
 
 ;Exercise 1.3
 (define (largest-sum-squares a b c)
@@ -244,16 +244,41 @@
         a
         (iter (+ a (* 2 b) (* 3 c)) a b (- count 1))))
   (iter 2 1 0 n))
+;(recursive-f 4) 
+;(iterative-f 4)
+
+
+;Exercise 1.14
+;Please see the handwritten notes.
+
+;Exercise 1.15
+;(a) We have:
+; (sin 12.15)
+; (p (sin 4.05))
+; (p (p (sin 1.35)))
+; (p (p (p (sin 1.35))))
+; (p (p (p (p (sin 0.45)))))
+; (p (p (p (p (p (sin 0.15))))))
+; (p (p (p (p (p (p (sin 0.05)))))))
+; The procedure p has been called 5 times
+;(b) Given sin a we have
+; a/(3^n)< c steps,
+; hence the order of growth is n log3 a, so phi(log n).
+; Finally, space-wise the number of variables didn't increase so space remaind constant phi(1).
 
 
 
-(recursive-f 4) 
-(iterative-f 4)
+;Exercise 1.16
+(define (even? n)
+  (= (remainder n 2) 0))
 
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
 
-
-
-
-
-
-
+;Exercise 1.17
+(define (fast-multi a b)
+  (cond ((= b 0) 0)
+        ((even? b) (* 2 (fast-multi a (/ b 2))))
+        (else (+ a (fast-multi a (- b 1))))))

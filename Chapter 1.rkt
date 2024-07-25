@@ -13,6 +13,7 @@
 ;6
 ;16
 
+
 ;Exercise 1.2
 ;(/
 ; (+ 5 4
@@ -20,21 +21,17 @@
 ; (* 3 (- 6 2) (- 2 7)))
 
 ;Exercise 1.3
-;(define (largest-sum-squares a b c)
+(define (largest-sum-squares a b c)
   ;sum of a^2+b^2+c^2
-;  (+ (* a a) (* b b) (* c c)
+  (+ (* a a) (* b b) (* c c)
      ;- (min a b c)^2
-;     (- (if (< a b)
-;            (if (< a c) (* a a) (* c c))
-;            (if (< b c) (* b b) (* с c))))))
-
+     (- (* (min a b c) (min a b c)))))
 
 ;Exercise 1.4
 ;What the procedure does is if b›d then we have a+b, otherwise a-b.
 
-
 ;Exercise 1.5
-;(define (p) (p))
+(define (p) (p))
 
 (define (test x y)
   (if (= x 0) 0 y))
@@ -51,6 +48,7 @@
 ;While for applicative-order of evaluation we would have
 ;(if (= 0 0) 0 (p))
 ;into itsel recursively since it recursively evaluates its arguments
+
 
 ;Exercise 1.6
 ;It would compute the square root as the previous example.
@@ -69,6 +67,7 @@
 
 (define (good-enough? guess x)
   (< (abs (- (square guess) x)) 0.001))
+
 
 ;(define (sqrt-iter guess x)
 ;  (new-if (good-enough? guess x)
@@ -93,6 +92,7 @@
   (if (good-enough? guess x)
       guess
       (sqrt-iter (improve guess x) x)))
+
 
 ;(define (sqrt x)
 ;  (sqrt-iter 1.0 x))
@@ -128,7 +128,6 @@
 (define (cube-root x)
   (cube-iter 1.0 x))
 
-
 ;Exercise 1.9
 ;given
 ;(define (+ a b)
@@ -158,7 +157,6 @@
 ;9
 ;This process is recursive as it expands and contracts, whuch isn't linear.
 
-
 ;For the second one we have
 ;(+ 4 5)
 ;(+ (dec 4) (inc 5))
@@ -175,7 +173,6 @@
 
 ;Exercise 1.10
 ;(A 1 10)
-
 
 ;(A (- 1 1) (A 1 (- 10 1)))
 ;(A 0 (A 1 9))
@@ -239,7 +236,6 @@
         (+ (recursive-f (- n 1)) (* 2 (recursive-f (- n 2))) (* 3 (recursive-f (- n 3))))))
 
 
-
 (define (iterative-f n)
   (define (iter a b c count)
     (if (< count 3)
@@ -261,9 +257,6 @@
   (/ (! n)(* (! (- n r)) (! r))))
 
 
-;Exercise 1.14
-;Please see the handwritten notes.
-
 ;Exercise 1.15
 ;(a) We have:
 ; (sin 12.15)
@@ -278,8 +271,6 @@
 ; a/(3^n)< c steps,
 ; hence the order of growth is n log3 a, so phi(log n).
 ; Finally, space-wise the number of variables didn't increase so space remaind constant phi(1).
-
-
 
 ;Exercise 1.16
 (define (even? n)
@@ -304,7 +295,6 @@
         ((and (< a 0) (< b 0)) (fast-multi (- a) (- b)))
         (else (fast-multi a b))))
 
-
 ;Exercise 1.19
 (define (fast-fib n)
   (fib-iter 1 0 0 1 n))
@@ -328,17 +318,28 @@
 
 ;(fast-fib 21)
 
-
-
-
 ;Exercise 1.21
 (define (smallest-divisor n)
   (find-divisor n 2))
 
+;Old implementation for finding a divisor.
 (define (find-divisor n test-divisor)
   (cond ((> (square test-divisor) n) n)
         ((divides? test-divisor n) test-divisor)
         (else (find-divisor n (+ test-divisor 1)))))
+
+
+;Begin new implementation for exercise 1.23.
+;(define (next test-divisor)
+;  (if (= test-divisor 2)
+;      3
+;      (+ test-divisor 2)))
+
+;(define (find-divisor n test-divisor)
+;  (cond ((> (square test-divisor) n) n)
+;        ((divides? test-divisor n) test-divisor)
+;        (else (find-divisor n (next test-divisor)))))
+;End of implementation for exercise 1.23.
 
 (define (divides? a b)
   (= (remainder b a) 0))
@@ -351,7 +352,7 @@
 (define (timed-prime-test n)
   (newline)
   (display n)
-  (start-prime-test n (current-milliseconds)))
+  (start-prime-test n (runtime)))
 
 (define (prime? n)
   (= n (smallest-divisor n)))
@@ -364,15 +365,43 @@
   (display " *** ")
   (display elapsed-time))
 
-;(define (search-for-primes iter size)
-;  (cond ((< iter size)
-;         (if (prime? iter)
-;             (display iter))
-;         (search-for-primes (+ iter 1) size))))
+(define (search-for-primes-iter i n)
+  (cond ((<= i n)
+         (timed-prime-test i)
+         (search-for-primes-iter (+ i 2) n))))
 
-(timed-prime-test 73)
+(define (search-for-primes i n)
+  (if (odd? i)
+      (search-for-primes-iter i n)
+      (search-for-primes-iter (+ i 1) n)
+      ))
+;(search-for-primes 1000 1090)
+;(newline)
+;(sqrt 10) ;10000
+
 ;(search-for-primes 10000 10090)
+;(newline)
+;(sqrt 100) ;100000
 
+;(search-for-primes 100000 100090)
+;(newline)
+;(sqrt 1000) ;100000
+
+
+
+;Answer: We have primes: 1009, 1013, 1019 which takes 1+2+1=4 units of runtime that approximates to sqrt(10) = 3.1622776601683795,
+;and primes 10007, 10009, 10037 which takes 4+3+4=10 units of runtime that is exactly to sqrt(100)=10,
+;and primes 100003, 100019, 100043 which takes about 11+10+11=32 units of runtime that approximates to sqrt(1000) = 31.622776601683793
+;so is a relationship with the method sqrt(n) units of runtime for  each n*10000 digits computaed.
+
+
+;1.23
+(search-for-primes 10000000 10000200)
+;Answer: For large numbers like 10000000 the total of the new procedure is 246 units of runtime with my modified change (next test-divisor), while its original one is 716 units of runtime (+ test-divisor 1).
+
+;1.24
+(define (expmod base exp m)
+  (remainder (fast-expt base exp) m))
 
 
 

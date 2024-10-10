@@ -348,6 +348,25 @@
 ;(smallest-divisor 1999)
 ;(smallest-divisor 19999)
 
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+
+(define (fast-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else false)))
+
 ;Exercise 1.22
 (define (timed-prime-test n)
   (newline)
@@ -387,8 +406,6 @@
 ;(newline)
 ;(sqrt 1000) ;100000
 
-
-
 ;Answer: We have primes: 1009, 1013, 1019 which takes 1+2+1=4 units of runtime that approximates to sqrt(10) = 3.1622776601683795,
 ;and primes 10007, 10009, 10037 which takes 4+3+4=10 units of runtime that is exactly to sqrt(100)=10,
 ;and primes 100003, 100019, 100043 which takes about 11+10+11=32 units of runtime that approximates to sqrt(1000) = 31.622776601683793
@@ -396,12 +413,101 @@
 
 
 ;1.23
-(search-for-primes 10000000 10000200)
+;(search-for-primes 10000000 10000200)
 ;Answer: For large numbers like 10000000 the total of the new procedure is 246 units of runtime with my modified change (next test-divisor), while its original one is 716 units of runtime (+ test-divisor 1).
 
 ;1.24
-(define (expmod base exp m)
-  (remainder (fast-expt base exp) m))
+;(define (expmod base exp m)
+;  (remainder (fast-expt base exp) m))
+
+;1.25
+;No, it takes far longer. For instance primes: 1009, 1013, 1019 takes 2338+2304+2389=7031 units of time.
+
+;1.26
+;It becomes this long as we computed base^(exp) mod m, while from our original procedure we either (base^(exp/2) mod m)^2 or (base^(exp-1) mod m) * base, which is a far smaller number to compute.
+
+;1.27
+;Carmichael Numbers, these numbers are not prime and tricked the Fermat test to validate prime numbers.
+;(fermat-test 561)
+;(fermat-test 1105)
+;(fermat-test 1729)
+;(fermat-test 2465)
+;(fermat-test 2821)
+
+;1.28
+(define (expmod-miller base exp m)
+  (cond ((or (= exp 0) (= exp 1)) 1)
+        ((even? exp)
+         (remainder (square (expmod-miller base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod-miller base (- exp 1) m))
+                    m))))
+
+(define (miller-rabin-test n)
+  (define (not-prime? a)
+    (or (= a 0) (not (= a 1))))
+  (define (try-it a)
+    (cond ((= a 1) #t)
+          ((not-prime? (expmod-miller a (- n 1) n)) #f)
+          (else (try-it (- a 1)))))
+  (try-it (- n 1)))
+
+
+(define (fast-prime?-rabin n times)
+  (cond ((= times 0) true)
+        ((miller-rabin-test n) (fast-prime?-rabin n (- times 1)))
+        (else false)))
+
+
+;(miller-rabin-test 2)
+;(miller-rabin-test 3)
+;(miller-rabin-test 5)
+;(miller-rabin-test 17)
+;(miller-rabin-test 97)
+
+;Carmichael numbers
+;(miller-rabin-test 561)
+;(miller-rabin-test 1105)
+;(miller-rabin-test 1729)
+;(miller-rabin-test 2465)
+;(miller-rabin-test 2821)
+
+;(fast-prime?-rabin 1 17)
+
+
+;Begins 1.3.1 Notes
+(define (sum term a next b)
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
+
+(define (inc n) (+ n 1))
+
+(define (sum-cubes a b)
+  (sum cube a inc b))
+
+;(sum-cubes 1 10)
+
+(define (identity x) x)
+
+(define (sum-integers a b)
+  (sum identity a inc b))
+
+;(sum-integers 1 10)
+
+;Ends 1.3.1 Notes
+
+(define (sum-! a b)
+  (sum ! a inc b))
+
+(sum-! 1 10)
+
+
+
+
+
 
 
 

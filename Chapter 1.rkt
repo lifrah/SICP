@@ -482,32 +482,200 @@
       0
       (+ (term a)
          (sum term (next a) next b))))
-
 (define (inc n) (+ n 1))
 
+;
 (define (sum-cubes a b)
   (sum cube a inc b))
-
 ;(sum-cubes 1 10)
 
+;Sum from a to b
 (define (identity x) x)
-
 (define (sum-integers a b)
   (sum identity a inc b))
-
 ;(sum-integers 1 10)
+
+;Approximate pi we
+(define (pi-sum a b)
+  (define (pi-term x)
+    (/ 1.0 (* x (+ x 2))))
+  (define (pi-next x)
+    (+ x 4))
+  (sum pi-term a pi-next b))
+;(* 8 (pi-sum 1 1000000))
+
+;Integral of f between a to b.
+(define (integral f a b dx)
+  (define (add-dx x) (+ x dx))
+  (* (sum f (+ a (/ dx 2.0)) add-dx b) dx))
+;(integral cube 0 1 0.01)
 
 ;Ends 1.3.1 Notes
 
-(define (sum-! a b)
-  (sum ! a inc b))
 
-(sum-! 1 10)
+;Exercise 1.29
+(define (Simpson-integral f a b n)
+  (define h (/ (- b a) n))
+  (define (y k) (f (+ a (* k h))))  
+  (define (next n) (+ n 2))
+  (* (/ h 3.0) (+ (y 0) (y n) (* 4 (sum y 1 next (- n 1))) (* 2 (sum y 2 next (- n 2))))))
+
+;(Simpson-integral cube 0 1.0 100)
+;(Simpson-integral cube 0 1.0 1000)
+
+;Exercise 1.30
+(define (fast-compute-sum term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (+ (term a) result)))
+        )
+  (iter 1 0))
+
+;test results
+(define (fast-sum-integers a b)
+  (fast-compute-sum identity a inc b))
+;(fast-sum-integers 1 10)
+
+(define (fast-cube-integers a b)
+  (fast-compute-sum cube a inc b))
+;(fast-cube-integers 1 10)
+
+(define (fast-pi-sum a b)
+  (define (pi-term x)
+    (/ 1.0 (* x (+ x 2))))
+  (define (pi-next x)
+    (+ x 4))
+  (fast-compute-sum pi-term a pi-next b))
+;(* 8 (fast-pi-sum 1 100000))
+
+;Exercise 1.31
+;(a)
+(define (product term a next b)
+  (if (> a b)
+      1
+      (* (term a)
+         (product term (next a) next b))))
+
+(define (factorial n)
+  (product identity 1 inc n))
+;(factorial 5)
+
+(define (Wallis-pi-compute n)
+  (define (f n) (/ (* 2 n) (- (* 2.0 n) 1)))
+  (define (g n) (/ (* 2 n) (+ (* 2.0 n) 1)))
+  (define (f*g n) (* (f n) (g n)))
+  (* (/ 2 3) (product f*g 2 inc n)))
+
+;(* 4 (Wallis-pi-compute 1000))
+
+;(b)
+(define (fast-compute-product term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (* (term a) result)))
+        )
+  (iter 2 1))
+
+(define (fast-Wallis-pi-compute n)
+  (define (f n) (/ (* 2 n) (- (* 2.0 n) 1)))
+  (define (g n) (/ (* 2 n) (+ (* 2.0 n) 1)))
+  (define (f*g n) (* (f n) (g n)))
+  (* (/ 2 3) (fast-compute-product f*g 2 inc n)))
+
+(define (fast-factorial n)
+  (fast-compute-product identity 1 inc n))
+;(fast-factorial 20)
+
+;(* 4 (fast-Wallis-pi-compute 100000))
 
 
+;1.32
+;(a)
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (combiner (term a)
+                (accumulate combiner null-value term (next a) next b))))
+
+(define (accumulate-sum term a next b)
+  (accumulate + 0 term a next b))
+;(accumulate-sum identity 1 inc 100)
+
+(define (accumulate-product term a next b)
+  (accumulate * 1 term a next b))
+;(accumulate-product identity 1 inc 5)
+
+;(b)
+(define (fast-accumulate combiner null-value term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (combiner (term a) result))))
+    (iter (next null-value) null-value))
+
+(define (fast-accumulate-sum term a next b)
+  (fast-accumulate + 0 term a next b))
+;(fast-accumulate-sum identity 1 inc 200)
+
+(define (fast-accumulate-product term a next b)
+  (fast-accumulate * 1 term a next b))
+;(fast-accumulate-product identity 1 inc 5)
+
+;1.33
+;(a)
+(define (filtered-accumulate filter combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (if (filter a)
+      (combiner (term a)
+                (filtered-accumulate filter combiner null-value term (next a) next b))
+      (filtered-accumulate filter combiner null-value term (next a) next b))))
+
+(define (sum-of-squared-primes a b)
+  (filtered-accumulate prime? + 0 square a inc b))
+
+;(sum-of-squared-primes 1 5)
+
+;(b)
+(define (sum-of-relative-primes a b)
+  (define (reltively-prime-b i)
+    (= (gcd i b) 1))
+  (filtered-accumulate reltively-prime-b + 0 identity a inc b))
+
+;(sum-of-relative-primes 1 10)
 
 
+(define (new-pi-sum a b)
+  (sum (lambda (x) (/ 1.0 (* x (+ x 2))))
+         a
+         (lambda (x) (+ x 4))
+         b))
+
+;(new-pi-sum 1 4)
+
+;((lambda (x y z) (* x y (cube z))) 1 2 3)
+
+(define (f x y)
+  (let ((a (+ 1 (* x y)))
+        (b (- 1 y)))
+    (+ (* x (square a))
+       (* y b)
+       (* a b))))
+
+;(f 3 5)
 
 
+;Exercises
+;1.34
+;It will throw an error that new-f isn't a
+;procedure due to argument provided is defined is also procedureless.
 
+(define (new-f g) (g 2))
+
+(new-f new-f)
+
+
+        
 
